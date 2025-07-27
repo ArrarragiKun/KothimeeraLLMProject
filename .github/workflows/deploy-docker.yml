@@ -47,22 +47,17 @@ jobs:
         env:
           INPUT_REF: ${{ inputs.ref }}
         run: |
-          TIMESTAMP=$(date -u +'%Y%m%d-%H%M%S')
           declare TAGS=""
-          declare EXTRA_TAGS=""
-
           case "${INPUT_REF}" in
             v[0-9]*.[0-9]*.[0-9]*)
-              VERSION="${INPUT_REF}"
-              TAGS="${VERSION} ${VERSION}-${TIMESTAMP}"
+              TAGS="${INPUT_REF}"
               if [[ "$(git rev-parse origin/main)" == "$(git rev-parse "${INPUT_REF}")" ]]; then
                 TAGS="${TAGS} latest"
               fi
               CHANNEL="stable"
               ;;
             [0-9]*.[0-9]*.[0-9]*-nightly)
-              VERSION="${INPUT_REF}"
-              TAGS="${VERSION} ${VERSION}-${TIMESTAMP} nightly"
+              TAGS="${INPUT_REF} nightly"
               CHANNEL="nightly"
               ;;
             *)
@@ -104,4 +99,6 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          ca
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.DOCKER_IMAGE_TAGS }}
